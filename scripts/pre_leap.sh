@@ -19,6 +19,11 @@
 set -e -u
 set -o pipefail
 
+# Pre-flight check
+pushd /opt/rpc-upgrades/playbooks
+  openstack-ansible preflight-check.yml
+popd
+
 # Preserve Elasticsearch data in the leap
 export UPGRADE_ELASTICSEARCH=${UPGRADE_ELASTICSEARCH:-"yes"}
 export CONTAINERS_TO_DESTROY=${CONTAINERS_TO_DESTROY:-'all_containers:!galera_all:!neutron_agent:!ceph_all:!rsyslog_all:!elasticsearch_all'}
@@ -29,16 +34,6 @@ export CONTAINERS_TO_DESTROY=${CONTAINERS_TO_DESTROY:-'all_containers:!galera_al
 if [[ -f /etc/openstack_deploy/user_rpcm_default_variables.yml ]]; then
     sed -i '/ansible_host/d' /etc/openstack_deploy/user_rpcm_default_variables.yml
 fi
-
-# Check for ceph
-pushd "/opt/rpc-openstack/openstack-ansible"
-    if ! scripts/inventory-manage.py -g | grep ceph > /dev/null; then
-        echo "No ceph found, we can continue"
-    else
-        echo "Ceph group found, the leapfrog can't continue"
-        exit 1
-    fi
-popd
 
 # Remove horizon static files variables from user_variables.yml as this is now
 # maintained in group_vars.
