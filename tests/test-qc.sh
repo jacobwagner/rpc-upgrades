@@ -18,6 +18,15 @@
 
 set -evu
 
+# Create venv for QC testing
+virtualenv --system-site-packages /opt/rpcqc
+
+# Source the venv
+source /opt/rpcqc/bin/activate
+
+# Install shade for openstack operations in ansible
+pip install shade
+
 ## Quality checking
 pushd /opt/rpc-upgrades/playbooks
   openstack-ansible qc-post-leap.yml
